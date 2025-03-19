@@ -3,7 +3,6 @@ global _start
 section .data
     array   dd 3, 1, 6, 2
     n       equ 4
-    newline     db 0Ah
 
 section .bss
     int_buffer  resb 12
@@ -83,11 +82,6 @@ print_int:
     mov     eax, 4
     mov     edx, ebx
     mov     ebx, 1
-    int     0x80
-    mov     eax, 4
-    mov     ebx, 1
-    mov     ecx, newline
-    mov     edx, 1
     int     0x80
 
     pop     edi
