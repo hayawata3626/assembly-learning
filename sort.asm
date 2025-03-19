@@ -1,65 +1,50 @@
 global _start
 
 section .data
-    ; ソート対象の整数配列 (例: 3, 1, 4, 2)
     array   dd 3, 1, 6, 2
-    n       equ 4               ; 配列の要素数
-    newline     db 0Ah          ; 改行文字
+    n       equ 4
+    newline     db 0Ah
 
 section .bss
-    ; 整数→文字列変換用のバッファ（最大 10 桁＋符号＋終端用に12バイト）
     int_buffer  resb 12
 
 section .text
 _start:
-    ; ----- バブルソートの実装 -----
-    ; 外側ループ: 配列要素数 - 1 回の繰り返し
     mov ecx, n
 outer_loop:
-    dec ecx               ; n-1回のループになる
-    jz sorting_done       ; カウンタが0ならソート終了
+    dec ecx
+    jz sorting_done
 
-    mov esi, 0            ; 内側ループのインデックスを0に初期化
+    mov esi, 0
 inner_loop:
-    ; array[esi] と array[esi+1] を比較
     mov eax, [array + esi*4]
     mov ebx, [array + esi*4 + 4]
     cmp eax, ebx
-    jle no_swap           ; 既に昇順ならスキップ
+    jle no_swap
 
-    ; 要素の入れ替え
     mov [array + esi*4], ebx
     mov [array + esi*4 + 4], eax
 
 no_swap:
-    inc esi               ; 次の要素へ
-    cmp esi, ecx        ; 内側ループは外側ループカウンタ分だけ回す
+    inc esi
+    cmp esi, ecx
     jl inner_loop
 
     jmp outer_loop
 
 sorting_done:
-    ; ----- ソートされた配列の各値を出力 -----
-    mov ecx, n          ; 配列の要素数
-    mov esi, array      ; 配列の先頭アドレス
+    mov ecx, n
+    mov esi, array
 print_loop:
-    mov eax, [esi]      ; 次の整数を取得
-    call print_int      ; 数値を文字列化して出力
-    add esi, 4        ; 次の配列要素へ
+    mov eax, [esi]
+    call print_int
+    add esi, 4
     loop print_loop
 
-    ; プログラム終了
-    mov eax, 1          ; sys_exit
+    mov eax, 1
     xor ebx, ebx
     int 0x80
 
-; -----------------------------------------------------------
-; print_int サブルーチン
-;  引数: EAX に変換したい整数（負数も対応）
-;  出力: 数値を ASCII 文字列に変換して標準出力に書き出す
-;         ※変換結果の後に改行も出力します。
-; 使用レジスタ: EAX, EBX, ECX, EDX, ESI, EDI（呼び出し前後で復元）
-; -----------------------------------------------------------
 print_int:
     push    ebp
     mov     ebp, esp
@@ -69,9 +54,8 @@ print_int:
     push    esi
     push    edi
 
-    ; --- 負の数の場合、'-'を出力して絶対値に変換 ---
     cmp     eax, 0
-    jge     .convert_digits    ; 0以上ならそのまま変換
+    jge     .convert_digits
     ; 負の場合
     neg     eax               ; 絶対値にする
     mov     byte [int_buffer], '-'  ; '-' をバッファ先頭に格納
