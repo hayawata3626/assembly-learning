@@ -54,52 +54,36 @@ print_int:
     push    esi
     push    edi
 
-    cmp     eax, 0
-    jge     .convert_digits
-    ; 負の場合
-    neg     eax               ; 絶対値にする
-    mov     byte [int_buffer], '-'  ; '-' をバッファ先頭に格納
-    mov     eax, 4
-    mov     ebx, 1
-    mov     ecx, int_buffer
-    mov     edx, 1
-    int     0x80
+    jmp .convert_digits
 
 .convert_digits:
-    ; int_buffer の末尾（バッファサイズ12）から逆順に数字を格納
     lea     edi, [int_buffer + 11]
-    mov     byte [edi], 0     ; 終端用のヌル（sys_writeでは使わないが）
+    mov     byte [edi], 0
     dec     edi
-
-    ; もし EAX が 0 の場合は、そのまま '0' を格納
     cmp     eax, 0
     jne     .convert_loop
     mov     byte [edi], '0'
     jmp     .print_number
 
 .convert_loop:
-    ; EAX が 0 になるまで10で割り、余りを文字に変換
 .convert_digit_loop:
     xor     edx, edx
     mov     ebx, 10
-    div     ebx               ; quotient in EAX, remainder in EDX
-    add     dl, '0'           ; ASCII変換
+    div     ebx
+    add     dl, '0'
     mov     [edi], dl
     dec     edi
     cmp     eax, 0
     jne     .convert_digit_loop
 
 .print_number:
-    ; ここで、数字文字列は (edi+1) から int_buffer+11 までに格納されている
-    lea     ecx, [edi+1]      ; 出力する文字列の先頭アドレス
+    lea     ecx, [edi+1]
     lea     ebx, [int_buffer + 11]
-    sub     ebx, ecx        ; 出力する文字数を計算
-    mov     eax, 4          ; sys_write
-    mov     edx, ebx        ; 出力文字数
-    mov     ebx, 1          ; stdout
+    sub     ebx, ecx
+    mov     eax, 4
+    mov     edx, ebx
+    mov     ebx, 1
     int     0x80
-
-    ; 数値出力後に改行を出力
     mov     eax, 4
     mov     ebx, 1
     mov     ecx, newline
